@@ -1,2 +1,73 @@
-# Gemini-MCP-google-search
-A Python-based MCP server that launches Google AI Mode in Chromium via Playwright and provides a `search_gemini` tool.
+# Gemini Search MCP
+
+MCP-сервер на Python, который открывает Google AI Mode в Chromium через Playwright и предоставляет инструмент `search_gemini`. Сервер передаёт поисковый запрос, ожидает генерацию ответа и извлекает текст из блока ответа, а не из всей страницы.
+
+## Возможности
+
+- Инструмент MCP `search_gemini(query)`.
+- Загрузка Google Search AI Mode в Chromium с помощью Playwright.
+- Извлечение ответа из целевых DOM-контейнеров с запасными селекторами.
+- Очистка части элементов интерфейса из результата.
+- Настройки языка, часового пояса и профиля браузера задаются в `server_v4.py`.
+
+## Установка
+
+Устанавливаете окружение и соответсвуюзие пакеты:
+
+```powershell
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install "mcp<2" playwright beautifulsoup4
+python -m playwright install chromium
+```
+
+Сервер использует API `mcp.server.fastmcp`; для него нужна версия пакета MCP 1.x (`mcp<2`). Если установлен MCP 2.x, импорт `FastMCP` завершится ошибкой.
+
+## Настройка
+
+Откройте `server_v4.py` и проверьте значения в `CONFIG`, особенно `chrome_data_dir`. Укажите существующий каталог профиля Chrome.
+
+Для подключения к MCP-клиенту добавьте конфигурацию, заменив пути на пути своей системы:
+
+```json
+{
+  "mcpServers": {
+    "gemini-search": {
+      "command": "C:\\\\path\\\\to\\\\project\\\\venv\\\\Scripts\\\\python.exe",
+      "args": ["C:\\\\path\\\\to\\\\project\\\\server_v4.py"]
+    }
+  }
+}
+```
+
+## Запуск и проверка
+
+```powershell
+.\venv\Scripts\Activate.ps1
+python server_v4.py
+```
+
+Запуск без ошибок подтверждает, что сервер стартовал; запросы отправляются через MCP-клиент вызовом `search_gemini`.
+
+Проверка синтаксиса:
+
+```powershell
+python -m py_compile server_v4.py
+```
+
+## Как устроено извлечение ответа
+
+Парсер выбирает один из селекторов ответа в `_extract_answer()` и удаляет служебные элементы из полученного HTML. Разметка Google меняется; при изменении страницы селекторы в `server_v4.py` могут потребовать обновления. Если ни один селектор не найден, инструмент возвращает диагностическое сообщение вместо текста всей страницы.
+
+
+## Структура проекта
+
+```text
+server_v4.py       MCP-сервер и парсер
+README.md          Документация проекта
+```
+
+## Предупреждение
+
+Внимание, половина кода была написанна нейронкой потому что своими кривыми руками у меня всегда повлялась страница "подозрительной активности". Используйте на свой страх и риск.
